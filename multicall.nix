@@ -80,33 +80,13 @@ let
           $OBJCOPY --redefine-syms="multicall/$t.redef" "multicall/$t.o"
       done
 
-      # Dispatcher: `bzip2recover` (basename contains "recover") → recover's
-      # main; everything else → bzip2_main with the ORIGINAL argv preserved, so
-      # bzip2's own argv[0] check still recognises `bunzip2`/`bzcat`.
-      {
-        cat <<'CHEAD'
-#include <string.h>
-int bzip2_main(int, char **);
-int bzip2recover_main(int, char **);
-static void base_of(char *dst, size_t cap, const char *src) {
-    const char *p = src, *s;
-    s = strrchr(p, '/'); if (s) p = s + 1;
-#ifdef _WIN32
-    s = strrchr(p, '\\'); if (s) p = s + 1;
-#endif
-    size_t n = strlen(p); if (n >= cap) n = cap - 1;
-    memcpy(dst, p, n); dst[n] = 0;
-    if (n > 4 && strcmp(dst + n - 4, ".exe") == 0) dst[n - 4] = 0;
-}
-int main(int argc, char **argv) {
-    char base[64];
-    const char *a0 = (argc > 0 && argv[0]) ? argv[0] : "bzip2";
-    base_of(base, sizeof base, a0);
-    if (strstr(base, "recover")) return bzip2recover_main(argc, argv);
-    return bzip2_main(argc, argv);
-}
-CHEAD
-      } > multicall/dispatcher.c
+      # Dispatcher (shared canonical generator — see nix-lib
+      # lib.multicallDispatcherC). apps.list carries the two real mains; an
+      # argv[0] of `bzip2recover` matches as an applet, while `bunzip2`/`bzcat`
+      # are NOT applets — they fall through to bzip2 (defaultApplet) with the
+      # original argv, so bzip2's own argv[0] self-detection still kicks in.
+      printf '%s\n' $TOOLS > multicall/apps.list
+${lib.multicallDispatcherC { name = "bzip2"; defaultApplet = "bzip2"; }}
       $CC -O2 -c -o multicall/dispatcher.o multicall/dispatcher.c
 
       # Final link: cc-wrapper adds -static (pkgsStatic/mingw). One pass —
