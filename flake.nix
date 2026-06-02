@@ -16,23 +16,14 @@
   outputs = { self, unpins-lib }:
     let
       ulib = unpins-lib.lib;
-      pkgsX = unpins-lib.inputs.nixpkgs.legacyPackages.x86_64-linux;
-      # The Windows binary's man is grafted from nixpkgs' bzip2.man, which
-      # carries all ten pages (the bzdiff/bzgrep/bzmore shell-script docs too).
-      # We ship only bzip2/bunzip2/bzcat/bzip2recover, so pin a curated tree —
-      # upstream has a single bzip2.1, copied per applet (the native side does
-      # the same in the multicall installPhase).
-      winMan = pkgsX.runCommand "bzip2-win-man" { } ''
-        mkdir -p "$out/share/man/man1"
-        for p in bzip2 bunzip2 bzcat bzip2recover; do
-          zcat ${pkgsX.bzip2.man}/share/man/man1/bzip2.1.gz > "$out/share/man/man1/$p.1"
-        done
-      '';
     in
     ulib.mkStandaloneFlake {
       inherit self;
       name = "bzip2";
-      winManRoot = winMan;
+      # No winManRoot: the shared multicall.nix installPhase copies upstream's
+      # single bzip2.1 to the four applet pages (bzip2/bunzip2/bzcat/
+      # bzip2recover) into $out/share/man on EVERY target, so the windows .exe
+      # harvests its OWN curated man — same set as native, no nixpkgs graft.
       # `--help` prints the version banner (to stderr; action-build matches
       # stdout+stderr) and exits 0 without reading stdin. `--version` is not a
       # real flag — bzip2 would treat it as "compress stdin to stdout".
