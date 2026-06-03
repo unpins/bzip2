@@ -25,8 +25,8 @@ To install it onto your PATH:
 unpin install bzip2
 ```
 
-Installing also creates the `bunzip2`, `bzcat` and `bzip2recover` aliases
-alongside `bzip2` — each dispatches via `argv[0]` to the same binary.
+Installing also creates the `bunzip2`, `bzcat` and `bzip2recover` commands
+alongside `bzip2`.
 
 ## Build locally
 
