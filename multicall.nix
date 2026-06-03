@@ -90,8 +90,14 @@ ${lib.multicallDispatcherC { name = "bzip2"; defaultApplet = "bzip2"; }}
       $CC -O2 -c -o multicall/dispatcher.o multicall/dispatcher.c
 
       # Final link: cc-wrapper adds -static (pkgsStatic/mingw). One pass —
-      # partials are self-contained.
+      # partials are self-contained. gcSectionsFlag adds lld + --gc-sections on
+      # the native gc scope. NOT on windows: here `pkgs` is the x86_64-linux
+      # root (the mingw cross lives in `bzip2.stdenv`), so gcSectionsFlag would
+      # emit the *linux* lld `-B`/`-fuse-ld=lld` and feed them to the mingw $CC
+      # — lld-link then rejects the driver's `-pie`. The mingw cross already
+      # links via its own stdenv; gc is Linux-only regardless.
       $CC multicall/bzip2.o multicall/bzip2recover.o multicall/dispatcher.o \
+        ${lib.optionalString (!isWindows) (lib.gcSectionsFlag pkgs)} \
         -o multicall/bzip2
       [ -f multicall/bzip2 ] || mv multicall/bzip2.exe multicall/bzip2
     '';

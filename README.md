@@ -10,22 +10,23 @@ block-sorting compressor.
 
 Part of the [unpins](https://unpins.org) project — native single-binary builds with no third-party runtime dependencies.
 
-## Installation
+## Usage
 
-Install with [unpin](https://github.com/unpins/unpin):
-
-```bash
-unpin bzip2
-```
-
-Or run without installing:
+Run the `bzip2` program with [unpin](https://github.com/unpins/unpin):
 
 ```bash
-unpin run bzip2
+unpin bzip2 -z file        # compress  -> file.bz2
+unpin bzip2 -d file.bz2    # decompress
 ```
 
-`unpin install` creates the aliases (`bunzip2`, `bzcat`, `bzip2recover`)
-alongside `bzip2`. Each dispatches via `argv[0]` to the same binary.
+To install it onto your PATH:
+
+```bash
+unpin install bzip2
+```
+
+Installing also creates the `bunzip2`, `bzcat` and `bzip2recover` aliases
+alongside `bzip2` — each dispatches via `argv[0]` to the same binary.
 
 ## Build locally
 
