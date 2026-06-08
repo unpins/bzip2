@@ -1,14 +1,13 @@
 # bzip2
 
-Standalone build of [bzip2](https://sourceware.org/bzip2/) — Julian Seward's
-block-sorting compressor.
+[bzip2](https://sourceware.org/bzip2/) — Julian Seward's block-sorting compressor. A single self-contained binary, built natively for Linux, macOS, and Windows.
 
 [![CI](https://github.com/unpins/bzip2/actions/workflows/bzip2.yml/badge.svg)](https://github.com/unpins/bzip2/actions)
 ![Linux](https://img.shields.io/badge/Linux-✓-success?logo=linux&logoColor=white)
 ![macOS](https://img.shields.io/badge/macOS-✓-success?logo=apple&logoColor=white)
 ![Windows](https://img.shields.io/badge/Windows-✓-success?logo=windows&logoColor=white)
 
-Part of the [unpins](https://unpins.org) project — native single-binary builds with no third-party runtime dependencies.
+Part of the [unpins](https://unpins.org) catalog; install it with [`unpin`](https://github.com/unpins/unpin): `unpin install bzip2`.
 
 ## Usage
 
@@ -28,6 +27,11 @@ unpin install bzip2
 Installing also creates the `bunzip2`, `bzcat` and `bzip2recover` commands
 alongside `bzip2`.
 
+## Man pages
+
+Upstream ships a single `bzip2.1` documenting every applet; it is embedded
+under each name, so `unpin man bzip2` and `unpin man bzip2 bzip2recover` both
+work.
 ## Build locally
 
 ```bash
@@ -59,8 +63,3 @@ The [Releases](https://github.com/unpins/bzip2/releases) page has standalone bin
   `_WIN32` support (`BZ_LCCWIN32` → `setmode`/`O_BINARY`), so the cross
   compiles cleanly.
 
-## Man pages
-
-Upstream ships a single `bzip2.1` documenting every applet; it is embedded
-under each name, so `unpin man bzip2` and `unpin man bzip2 bzip2recover` both
-work.
