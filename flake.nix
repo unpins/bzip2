@@ -1,5 +1,5 @@
 {
-  description = "Standalone build of bzip2";
+  description = "bzip2 (bzip2 + bzip2recover) as a single self-contained binary";
 
   nixConfig = {
     extra-substituters = [ "https://unpins.cachix.org" ];
