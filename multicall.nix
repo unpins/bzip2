@@ -29,6 +29,7 @@ let
   # path renames to .exe in its own stdenv fixup, but the mingw stdenv leaves
   # `$CC -o bzip2` as `bzip2`, so we must rename it ourselves.)
   isWindows = bzip2.stdenv.hostPlatform.isWindows or false;
+  isLinux = bzip2.stdenv.hostPlatform.isLinux or false;
 
   multicall = bzip2.overrideAttrs (old: {
     pname = "bzip2-multi";
@@ -81,23 +82,21 @@ let
       done
 
       # Dispatcher (shared canonical generator — see nix-lib
-      # lib.multicallDispatcherC). apps.list carries the two real mains; an
-      # argv[0] of `bzip2recover` matches as an applet, while `bunzip2`/`bzcat`
+      # lib.multicallTableDispatcherC). applets.list carries the two real mains;
+      # an argv[0] of `bzip2recover` matches as an applet, while `bunzip2`/`bzcat`
       # are NOT applets — they fall through to bzip2 (defaultApplet) with the
       # original argv, so bzip2's own argv[0] self-detection still kicks in.
-      printf '%s\n' $TOOLS > multicall/apps.list
-${lib.multicallDispatcherC { name = "bzip2"; defaultApplet = "bzip2"; }}
+      for t in $TOOLS; do printf '%s\t%s\n' "$t" "$t"; done > multicall/applets.list
+${lib.multicallTableDispatcherC { name = "bzip2"; defaultApplet = "bzip2"; }}
       $CC -O2 -c -o multicall/dispatcher.o multicall/dispatcher.c
 
       # Final link: cc-wrapper adds -static (pkgsStatic/mingw). One pass —
-      # partials are self-contained. gcSectionsFlag adds lld + --gc-sections on
-      # the native gc scope. NOT on windows: here `pkgs` is the x86_64-linux
-      # root (the mingw cross lives in `bzip2.stdenv`), so gcSectionsFlag would
-      # emit the *linux* lld `-B`/`-fuse-ld=lld` and feed them to the mingw $CC
-      # — lld-link then rejects the driver's `-pie`. The mingw cross already
-      # links via its own stdenv; gc is Linux-only regardless.
+      # partials are self-contained. gcSectionsFlag's `-B<lld>` makes `ld`
+      # resolve to the ELF ld.lld, so it's Linux-only: on darwin it would
+      # shadow ld64.lld and feed it -platform_version (ld64-only); on windows
+      # `pkgs` is the x86_64-linux root and lld-link rejects the driver's -pie.
       $CC multicall/bzip2.o multicall/bzip2recover.o multicall/dispatcher.o \
-        ${lib.optionalString (!isWindows) (lib.gcSectionsFlag pkgs)} \
+        ${lib.optionalString isLinux (lib.gcSectionsFlag pkgs)} \
         -o multicall/bzip2
       [ -f multicall/bzip2 ] || mv multicall/bzip2.exe multicall/bzip2
     '';
