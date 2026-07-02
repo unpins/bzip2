@@ -55,11 +55,16 @@ The [Releases](https://github.com/unpins/bzip2/releases) page has standalone bin
 
 - Single multicall binary. `bzip2` compresses/decompresses and serves
   `bunzip2` and `bzcat` by inspecting `argv[0]`; `bzip2recover` (salvage blocks
-  from a damaged `.bz2`) is a second program folded in via the same `ld -r` +
-  `objcopy --redefine-syms` recipe as the Info-ZIP tools. Dropped: the
+  from a damaged `.bz2`) is a second program folded in. On Linux/macOS the fold
+  is done by the unpin-llvm engine (per-program bitcode module); Windows (mingw)
+  uses an `ld -r` + `objcopy --redefine-syms` fold instead. Dropped: the
   `bzdiff`/`bzgrep`/`bzmore` `/bin/sh` wrappers (they need an external shell +
-  diff/grep/more).
+  diff/grep/more), and their man pages are curated out so only the four shipped
+  applets' pages are embedded.
 - **Windows** is built with mingw (not Cosmopolitan): bzip2.c has first-class
   `_WIN32` support (`BZ_LCCWIN32` → `setmode`/`O_BINARY`), so the cross
   compiles cleanly.
+- **Tests:** bzip2's classic `make test` (the self-compress/decompress check)
+  isn't exposed by the packaged build, so no native suite is wired; the release
+  smoke test covers a compress/decompress round-trip.
 

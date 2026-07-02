@@ -49,13 +49,34 @@
       # keep libSystem dynamic), and without it bzip2's libtool builds a libbz2
       # dylib that ld64 rejects with -soname. windows still uses ./multicall.nix.
       build = pkgs:
+        let
+          # Curate the embedded man to exactly the shipped applets. nixpkgs bzip2
+          # installs pages for the bz* shell-script wrappers (bzgrep/bzdiff/
+          # bzless/bzmore/…) — which we DON'T ship — and none for bzip2recover
+          # (upstream documents it inside bzip2.1). withMan would otherwise embed
+          # the script pages and leave bzip2recover undocumented. So drop the
+          # script pages and give bzip2recover its own copy of bzip2.1. (The
+          # windows multicall.nix already curates the same 4-page set.)
+          curateMan = o: {
+            postInstall = (o.postInstall or "") + ''
+              md="''${man:-$out}/share/man/man1"
+              if [ -d "$md" ]; then
+                [ -e "$md/bzip2recover.1" ] || cp "$md/bzip2.1" "$md/bzip2recover.1"
+                find "$md" -mindepth 1 -maxdepth 1 \
+                  ! -name 'bzip2.1*' ! -name 'bunzip2.1*' \
+                  ! -name 'bzcat.1*' ! -name 'bzip2recover.1*' \
+                  -delete
+              fi
+            '';
+          };
+        in
         if pkgs.stdenv.hostPlatform.isDarwin
-        then pkgs.pkgsStatic.bzip2.overrideAttrs (o: {
+        then pkgs.pkgsStatic.bzip2.overrideAttrs (o: (curateMan o) // {
           preConfigure = (o.preConfigure or "") + ''
             configureFlagsArray+=("--disable-shared")
           '';
         })
-        else pkgs.pkgsStatic.bzip2;
+        else pkgs.pkgsStatic.bzip2.overrideAttrs curateMan;
       windowsBuild = pkgs:
         import ./multicall.nix { lib = pkgs.lib // ulib; }
           { inherit pkgs; bzip2 = (ulib.mingwStaticCross pkgs).bzip2; };
