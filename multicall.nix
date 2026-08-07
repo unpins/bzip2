@@ -82,11 +82,14 @@ let
       done
 
       # Dispatcher (shared canonical generator — see nix-lib
-      # lib.multicallTableDispatcherC). applets.list carries the two real mains;
-      # an argv[0] of `bzip2recover` matches as an applet, while `bunzip2`/`bzcat`
-      # are NOT applets — they fall through to bzip2 (defaultApplet) with the
-      # original argv, so bzip2's own argv[0] self-detection still kicks in.
+      # lib.multicallTableDispatcherC). The TSV is many-to-one, so `bunzip2` and
+      # `bzcat` are extra rows at bzip2's fn-base: argv[0] reaches bzip2's main
+      # exactly as before (it self-detects), and `--unpin-program=bunzip2` now
+      # reaches it too — the dispatcher rewrites argv[0] to the selected name.
+      # Leaving them out made the two vias disagree on windows while the native
+      # nix-lib table (which lists aliases) accepted both.
       for t in $TOOLS; do printf '%s\t%s\n' "$t" "$t"; done > multicall/applets.list
+      printf 'bunzip2\tbzip2\nbzcat\tbzip2\n' >> multicall/applets.list
 ${lib.multicallTableDispatcherC { name = "bzip2"; defaultApplet = "bzip2"; }}
       $CC -O2 -c -o multicall/dispatcher.o multicall/dispatcher.c
 
