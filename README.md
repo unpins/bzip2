@@ -29,7 +29,7 @@ alongside `bzip2`.
 
 ## Man pages
 
-Upstream ships a single `bzip2.1` documenting every applet; it is embedded
+Upstream ships a single `bzip2.1` documenting every program; it is embedded
 under each name, so `unpin man bzip2` and `unpin man bzip2 bzip2recover` both
 work.
 ## Build locally
