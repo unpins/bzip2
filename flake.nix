@@ -60,13 +60,36 @@
       # and without it bzip2's libtool builds a libbz2 dylib that ld64 rejects
       # with -soname.
       build = pkgs:
+        let
+          base = pkgs.pkgsStatic.bzip2;
+          check = {
+            doCheck = base.stdenv.buildPlatform.canExecute base.stdenv.hostPlatform;
+            # bzip2's round-trip test is a recipe in the hand-written Makefile
+            # (upstream `test:`), and nixpkgs builds the autotools port, whose
+            # generated `check` is empty — the reference files ship in the
+            # tarball and nothing ever compares against them. Same six
+            # compressions and six comparisons, run here.
+            checkPhase = ''
+              runHook preCheck
+              for i in 1 2 3; do
+                ./bzip2 -$i < sample$i.ref > sample$i.rb2
+                cmp sample$i.bz2 sample$i.rb2
+              done
+              ./bzip2 -d  < sample1.bz2 > sample1.tst
+              ./bzip2 -d  < sample2.bz2 > sample2.tst
+              ./bzip2 -ds < sample3.bz2 > sample3.tst
+              for i in 1 2 3; do cmp sample$i.tst sample$i.ref; done
+              runHook postCheck
+            '';
+          };
+        in
         if pkgs.stdenv.hostPlatform.isDarwin
-        then pkgs.pkgsStatic.bzip2.overrideAttrs (o: (curateMan o) // {
+        then base.overrideAttrs (o: (curateMan o) // check // {
           preConfigure = (o.preConfigure or "") + ''
             configureFlagsArray+=("--disable-shared")
           '';
         })
-        else pkgs.pkgsStatic.bzip2.overrideAttrs curateMan;
+        else base.overrideAttrs (o: (curateMan o) // check);
       windowsBuild = pkgs: (ulib.mingwStaticCross pkgs).bzip2.overrideAttrs curateMan;
     };
 }
