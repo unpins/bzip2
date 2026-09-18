@@ -55,8 +55,7 @@ The [Releases](https://github.com/unpins/bzip2/releases) page has standalone bin
 
 - Single multicall binary. `bzip2` compresses/decompresses and serves
   `bunzip2` and `bzcat` by inspecting `argv[0]`; `bzip2recover` (salvage blocks
-  from a damaged `.bz2`) is a second program folded in. The fold is done by the unpin-llvm
-  engine (per-program bitcode module) on every platform, Windows included.
+  from a damaged `.bz2`) is a second program folded in.
   Dropped: the `bzdiff`/`bzgrep`/`bzmore` `/bin/sh` wrappers (they need an
   external shell + diff/grep/more), and their man pages are curated out so only
   the four shipped applets' pages are embedded.
