@@ -62,7 +62,9 @@ The [Releases](https://github.com/unpins/bzip2/releases) page has standalone bin
 - **Windows** targets the mingw-w64 runtime (not Cosmopolitan): bzip2.c has
   first-class `_WIN32` support (`BZ_LCCWIN32` → `setmode`/`O_BINARY`), so it
   builds with no Windows-specific work of ours.
-- **Tests:** bzip2's classic `make test` (the self-compress/decompress check)
-  isn't exposed by the packaged build, so no native suite is wired; the release
-  smoke test covers a compress/decompress round-trip.
+- **Tests:** upstream's round-trip check runs during the build (the three
+  sample files compressed at `-1`/`-2`/`-3` and decompressed, each compared with
+  the reference copies in the tarball) on the Linux and macOS targets the build
+  machine can execute. Windows and the other cross targets get the `--help`
+  smoke test only.
 
