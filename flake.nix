@@ -8,10 +8,10 @@
 
   inputs.unpins-lib.url = "github:unpins/nix-lib";
 
-  # bzip2 + bzip2recover folded into one multicall binary at $out/bin/bzip2,
-  # with `bunzip2`/`bzcat`/`bzip2recover` as argv[0]-dispatch UNPIN_META
-  # aliases. Windows goes through mingw — bzip2.c carries first-class _WIN32
-  # support (BZ_LCCWIN32: setmode/O_BINARY), no Cosmopolitan needed.
+  # bzip2 and bzip2recover folded into one multicall binary at $out/bin/bzip2;
+  # `bunzip2` and `bzcat` are aliases of bzip2. Windows goes through mingw —
+  # bzip2.c carries first-class _WIN32 support (BZ_LCCWIN32: setmode/O_BINARY),
+  # no Cosmopolitan needed.
   outputs = { self, unpins-lib }:
     let
       ulib = unpins-lib.lib;
